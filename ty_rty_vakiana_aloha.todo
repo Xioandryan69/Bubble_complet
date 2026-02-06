@@ -1,0 +1,24 @@
+[]Fichier de configuration mandeha 
+[] resolv.conf nameserveur 127.0.0.1
+[] reseaux local  ip
+1-Virtual host :
+    -client mitifitra ip reseaux local 
+
+    -serveur :  
+    -entrer             /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/
+        serveur.sh lancer 
+
+    
+2-Dovecot  Postfix:
+   /home/itu/Documents/S3/Reseaux/Bubble_complet/Dovecot/serveur 
+        run.sh lancer
+    
+
+3-Samba:
+    plscer /home/itu/Documents/S3/Reseaux/Bubble_complet/Samba/run.sh
+    run.sh lancer
+
+mivaoka dossier Bubble_complet
+    [text](Bubble_complet/Bubble/install.sh)
+
+        /home/itu/Documents/S3/Reseaux/Bubble_complet/Bubble/provision.sh
