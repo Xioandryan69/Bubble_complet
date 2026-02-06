@@ -21,3 +21,8 @@ sudo smbpasswd -a "$username"
 
 # Active l’utilisateur Samba
 sudo smbpasswd -e "$username"
+
+# Redémarrer Samba
+sudo systemctl restart smbd
+sudo systemctl restart nmbd
+echo "Partage Samba créé pour l'utilisateur $username : //$HOSTNAME/$partage"
