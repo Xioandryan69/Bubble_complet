@@ -7,8 +7,11 @@ fi
 username="$1"
 partage="$2"
 
+
 sudo mkdir -p /home/"$username"/"$partage"
 sudo chown -R itu:itu /home/"$username"/"$partage"
+#chown -R "$username:$username" /home/"$username"/"$partage"
+
 
 # Change le propriétaire pour l'utilisateur nyavo
 sudo chown "$username":"$username" /home/"$username"/"$partage"

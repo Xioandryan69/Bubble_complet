@@ -1,6 +1,8 @@
 echo "Copying db.bubble.mg to /etc/bind/..."
 sudo cp db.bubble.mg /etc/bind/
-sudo chown -R itu:itu /etc/bind/db.bubble.mg
+chown root:bind /etc/bind/db.bubble.mg
+chmod 640 /etc/bind/db.bubble.mg
+
 sudo chown -R itu:itu /etc/bind/named.conf.local
 # Ensure the zone file ends with a newline to avoid BIND parse errors.
 sudo sed -i -e '$a\' /etc/bind/db.bubble.mg
@@ -29,7 +31,7 @@ sudo cp -r ../../Bubble /var/www/html/Bubble
 sudo chown -R itu:itu /var/www/html/Bubble
 
 sudo cp ../bubble.mg.conf /etc/apache2/sites-available/bubble.mg.conf
-sudo nano /etc/apache2/sites-available/bubble.mg.conf
+#sudo nano /etc/apache2/sites-available/bubble.mg.conf
 sudo chown -R itu:itu /etc/apache2/sites-available/bubble.mg.conf
 
 sudo a2ensite bubble.mg.conf
