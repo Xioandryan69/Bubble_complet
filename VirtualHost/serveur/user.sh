@@ -22,7 +22,9 @@ echo "$USERNAME    IN    A    $IP" | sudo tee -a "$ZONE_FILE" > /dev/null
 
 # 4️ Incrémenter le Serial
 echo " Mise à jour du Serial"
-sudo sed -i '/Serial/ s/\([0-9]\+\)/\1+1/e' "$ZONE_FILE"
+OLD_SERIAL=$(grep '; Serial' "$ZONE_FILE" | grep -oE '[0-9]+' | head -1)
+NEW_SERIAL=$((OLD_SERIAL + 1))
+sudo sed -i "s/^[[:space:]]*$OLD_SERIAL[[:space:]]*;[[:space:]]*Serial/$NEW_SERIAL\t; Serial/" "$ZONE_FILE"
 
 # 5️ Vérification de la zone
 echo " Vérification BIND9..."
@@ -32,6 +34,12 @@ if [ $? -ne 0 ]; then
     echo " Erreur dans le fichier DNS"
     exit 1
 fi
+
+# 6️ Redémarrage BIND9
+echo " Redémarrage de BIND9"
+sudo adduser $USERNAME
+sudo mkdir -p /home/$USERNAME/Maildir/{cur,new,tmp}
+sudo chown -R $USERNAME:$USERNAME /home/$USERNAME/Maildir
 
 # 6️ Redémarrage BIND9
 echo " Redémarrage de BIND9"

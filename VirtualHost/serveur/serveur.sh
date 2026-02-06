@@ -1,5 +1,5 @@
 echo "Copying db.bubble.mg to /etc/bind/..."
-sudo cp db.bubble.mg /etc/bind/
+sudo cp db.bubble.mg /etc/bind/db.bubble.mg
 sudo chown -R itu:itu /etc/bind/db.bubble.mg
 sudo chown -R itu:itu /etc/bind/named.conf.local
 # Ensure the zone file ends with a newline to avoid BIND parse errors.

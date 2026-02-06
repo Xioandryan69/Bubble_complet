@@ -14,6 +14,9 @@ sudo chown -R itu:itu /etc/ssl/certs/mail.crt
 sudo systemctl restart postfix
 sudo systemctl enable postfix
 
+sudo cp -R ../dovecot/* /etc/dovecot/
+sudo chown -R root:root /etc/dovecot
+sudo chmod 755 /etc/dovecot
 sudo systemctl restart dovecot
 sudo systemctl enable dovecot
 
