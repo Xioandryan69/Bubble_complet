@@ -1,0 +1,25 @@
+myhostname = mail.bubble.mg
+mydomain = bubble.mg
+myorigin = /etc/mailname
+
+inet_interfaces = all
+inet_protocols = ipv4
+
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+
+home_mailbox = Maildir/
+
+smtpd_banner = $myhostname ESMTP
+biff = no
+append_dot_mydomain = no
+
+# Sécurité locale
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+
+# Réseau local
+mynetworks = 127.0.0.0/8 10.228.55.0/24
+
+# TLS (auto-signé OK pour LAN)
+smtpd_tls_cert_file=/etc/ssl/certs/mail.crt
+smtpd_tls_key_file=/etc/ssl/private/mail.key
+smtpd_use_tls=yes

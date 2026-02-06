@@ -1,0 +1,4 @@
+driver = mysql
+connect = host=127.0.0.1 dbname=bubble user=root password=
+default_pass_scheme = SHA512-CRYPT
+password_query = SELECT email AS user, password FROM virtual_users WHERE email='%u';

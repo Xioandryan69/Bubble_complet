@@ -10,9 +10,10 @@
 ns      IN      A       192.168.1.1
 
 @       IN      A       192.168.1.1
-serveur IN      A       192.168.1.1
-client  IN      A       192.168.1.1
 www     IN      A       192.168.1.1
+@       IN   MX  10 mail.bubble.mg.
+mail    IN      A       192.168.1.1
+
 
 
 

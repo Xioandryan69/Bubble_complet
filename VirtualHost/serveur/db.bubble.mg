@@ -11,5 +11,5 @@ ns      IN      A       127.0.0.1
 
 @       IN      A       127.0.0.1
 www     IN      A       127.0.0.1
-serveur IN      A       127.0.0.1
-client  IN      A       127.0.0.1
+@       IN   MX  10 mail.bubble.mg.
+mail    IN      A       127.0.0.1
