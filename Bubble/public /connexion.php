@@ -1,8 +1,18 @@
 <?php
 session_start();
 
-$valid_username = 'admin';
-$valid_password = 'bubble123';
+$host = 'localhost';
+$dbname = 'bubble';
+$user = 'root';
+$pass = '';
+$dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+
+try {
+    $pdo = new PDO($dsn, $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Erreur de connexion : " . $e->getMessage());
+}
 
 $error = '';
 
@@ -10,9 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['name'] ?? '';
     $password = $_POST['motdepasse'] ?? '';
 
-    if ($username === $valid_username && $password === $valid_password) {
+    $stmt = $pdo->prepare("SELECT * FROM utilisateur WHERE username = :username AND pwd = :pwd");
+    $stmt->execute([
+        'username' => $username,
+        'pwd' => $password
+    ]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user) {
         $_SESSION['loggedin'] = true;
-        $_SESSION['username'] = $username;
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['userstatus'] = $user['userstatus'];
         header("Location: modele.php");
         exit();
     } else {
