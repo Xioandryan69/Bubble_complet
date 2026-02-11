@@ -11,8 +11,8 @@
 define('DB_HOST', '127.0.0.1');
 define('DB_PORT', '5432');
 define('DB_NAME', 'bubble');
-define('DB_USER', 'bubble_user');
-define('DB_PASS', 'bubble_secret_2026');
+define('DB_USER', 'postgres');
+define('DB_PASS', 'postgres');
 
 /**
  * Retourne une instance PDO connectée à PostgreSQL
