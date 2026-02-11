@@ -124,13 +124,13 @@ $onglet = $_GET['tab'] ?? 'attente';
 
 <div class="header">
     <h1>🫧 Bubble.mg — Administration</h1>
-    <a href="/public/index.php">← Retour au site</a>
+    <a href="../public/index.php">← Retour au site</a>
 </div>
 
 <div class="container">
 
     <?php if ($message): ?>
-        <div class="alert <?= str_starts_with($message, '✓') ? 'alert-success' : 'alert-danger' ?>">
+        <div class="alert <?= substr($message, 0, 1) === '✓' ? 'alert-success' : 'alert-danger' ?>">
             <?= htmlspecialchars($message) ?>
         </div>
     <?php endif; ?>
