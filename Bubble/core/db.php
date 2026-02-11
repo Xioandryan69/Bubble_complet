@@ -134,19 +134,20 @@ function validateUser(int $userId, string $ipAddress): bool
 function createDemande(int $userId, string $sousDomaine, bool $mail, bool $samba): int
 {
     $pdo = getDB();
+    
     $stmt = $pdo->prepare("
-        INSERT INTO demandes (user_id, sous_domaine, mail, samba)
-        VALUES (:user_id, :sous_domaine, :mail, :samba)
+        INSERT INTO demandes (user_id, sous_domaine, mail, samba, status)
+        VALUES (:user_id, :sous_domaine, :mail, :samba, 'pending')
         RETURNING id
     ");
     $stmt->execute([
         ':user_id'      => $userId,
-        ':sous_domaine'  => $sousDomaine,
-        ':mail'          => $mail ? 'true' : 'false',
-        ':samba'         => $samba ? 'true' : 'false',
+        ':sous_domaine' => $sousDomaine,
+        ':mail'         => $mail,
+        ':samba'        => $samba,
     ]);
-
-    return (int) $stmt->fetchColumn();
+    
+    return $stmt->fetchColumn();
 }
 
 /**

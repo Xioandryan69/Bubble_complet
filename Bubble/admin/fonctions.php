@@ -177,4 +177,4 @@ function afficherUtilisateursValides(): void
             <?php endforeach; ?>
         </tbody>
     </table>
-<?php }
+<?php } ?>
