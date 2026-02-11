@@ -9,7 +9,7 @@ partage="$2"
 
 
 sudo mkdir -p /home/"$username"/"$partage"
-sudo chown -R itu:itu /home/"$username"/"$partage"
+sudo chown root:root /home/"$username"/"$partage"
 #chown -R "$username:$username" /home/"$username"/"$partage"
 
 
