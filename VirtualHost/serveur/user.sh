@@ -9,7 +9,7 @@ USERNAME="$1"
 IP="$2"
 DOMAIN="bubble.mg"
 ZONE_FILE="/etc/bind/db.bubble.mg"
-sudo chown -R itu:itu "$ZONE_FILE"
+sudo chown root:root "$ZONE_FILE"
 # 2️ Vérifier si l'entrée existe déjà
 if grep -qE "^$USERNAME\s+IN\s+A" "$ZONE_FILE"; then
     echo "  L'entrée DNS $USERNAME.$DOMAIN existe déjà"
@@ -28,7 +28,7 @@ sudo sed -i "s/^[[:space:]]*$OLD_SERIAL[[:space:]]*;[[:space:]]*Serial/$NEW_SERI
 
 # 5️ Vérification de la zone
 echo " Vérification BIND9..."
-sudo chown -R itu:itu "$ZONE_FILE"
+sudo chown root:root "$ZONE_FILE"
 sudo named-checkzone "$DOMAIN" "$ZONE_FILE"
 if [ $? -ne 0 ]; then
     echo " Erreur dans le fichier DNS"
