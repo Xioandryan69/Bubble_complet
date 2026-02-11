@@ -178,6 +178,32 @@ Repartition des taches (independantes)
 
 
 
-
+[ ]-mail :interface :
+	[]Boite mail :
+		liste  message :
+			[] lu
+			[] non lu  
+		
+		Message :
+			[ ] envoyeur 
+			[ ] receveur 
+			[ ] date 
+			[ ] contenu 
+			
+			
+		[] Message :
+			ip :serveur :
+			bubble.mg 
+			
+			DAte : jour ,11 Annee hh:min:ss 
+			
+			To :receiver@bubble.mg
+			
+			From :sender@bubble.mg
+			
+			Subject: jgjkvkujg8ou
+			
+			Contenu : Coucou			
+			 
 
 
