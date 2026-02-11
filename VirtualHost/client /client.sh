@@ -28,11 +28,11 @@ dig bubble.mg
 
 sudo cp -r ../../Bubble /var/www/html/Bubble
 
-sudo chown -R itu:itu /var/www/html/Bubble
+sudo chown root:root /var/www/html/Bubble
 
 sudo cp ../bubble.mg.conf /etc/apache2/sites-available/bubble.mg.conf
 #sudo nano /etc/apache2/sites-available/bubble.mg.conf
-sudo chown -R itu:itu /etc/apache2/sites-available/bubble.mg.conf
+sudo chown root:root /etc/apache2/sites-available/bubble.mg.conf
 
 sudo a2ensite bubble.mg.conf
 sudo systemctl reload apache2
@@ -46,9 +46,12 @@ sudo openssl req -x509 -nodes -days 365 \
 -newkey rsa:2048 \
 -keyout /etc/apache2/ssl/bubble.mg.key \
 -out /etc/apache2/ssl/bubble.mg.crt
-
+sudo chown root:root /etc/apache2/ssl/bubble.mg.key
+sudo chmod 600 /etc/apache2/ssl/bubble.mg.key
+sudo chown root:root /etc/apache2/ssl/bubble.mg.crt
+sudo chmod 644 /etc/apache2/ssl/bubble.mg.crt
 sudo cp ../../bubble.mg-ssl.conf /etc/apache2/sites-available/bubble.mg-ssl.conf
-sudo chown -R itu:itu /etc/apache2/sites-available/bubble.mg-ssl.conf
+sudo chown root:root /etc/apache2/sites-available/bubble.mg-ssl.conf
 
 sudo nano /etc/apache2/sites-available/bubble.mg-ssl.conf
 
