@@ -1,4 +1,5 @@
-driver = mysql
-connect = host=127.0.0.1 dbname=bubble user=root password=
+driver = pgsql
+connect = host=127.0.0.1 dbname=bubble user=bubble_user password=bubble_secret_2026
 default_pass_scheme = SHA512-CRYPT
-password_query = SELECT email AS user, password FROM virtual_users WHERE email='%u';
+password_query = SELECT email AS user, password FROM virtual_users WHERE email='%u' AND enabled = TRUE;
+user_query = SELECT maildir AS home, 5000 AS uid, 5000 AS gid FROM virtual_users WHERE email='%u' AND enabled = TRUE;
