@@ -1,4 +1,5 @@
-cp ../main.cf /etc/postfix/main.cf
+
+cp /Dovecot/main.cf /etc/postfix/main.cf
 sudo chown  root:root /etc/postfix/main.cf
 
 echo "bubble.mg" | sudo tee /etc/mailname
@@ -16,8 +17,7 @@ sudo chmod 644 /etc/ssl/certs/mail.crt
 
 sudo systemctl restart postfix
 sudo systemctl enable postfix
-
-sudo cp -R ../dovecot/* /etc/dovecot/
+sudo cp -R /Dovecot/dovecot* /etc/dovecot/
 sudo chown -R root:root /etc/dovecot
 sudo chmod 755 /etc/dovecot
 sudo systemctl restart dovecot
