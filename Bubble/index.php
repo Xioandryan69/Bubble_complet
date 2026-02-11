@@ -1,3 +1,7 @@
+<?php 
+    header("Location: connexion.php");
+    exit();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
