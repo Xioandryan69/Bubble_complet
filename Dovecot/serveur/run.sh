@@ -1,4 +1,4 @@
-cp Dovecot/main.cf /etc/postfix/main.cf
+sudo cp Dovecot/main.cf /etc/postfix/main.cf
 sudo chown  root:root /etc/postfix/main.cf
 
 echo "bubble.mg" | sudo tee /etc/mailname
