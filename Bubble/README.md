@@ -28,7 +28,7 @@ Admin
 
                 Maildir
 
-                Samba
+                Samba<>
 
                 Dossier web
 
@@ -203,7 +203,27 @@ Repartition des taches (independantes)
 			
 			Subject: jgjkvkujg8ou
 			
-			Contenu : Coucou			
+			Contenu : Coucou	
+
+
+              ENVOI
+PHP → Postfix (SMTP 25/587)
+       ↓
+DNS MX (bubble.mg)
+       ↓
+Serveur distant
+
+              RÉCEPTION
+Serveur distant
+       ↓
+Postfix (SMTP 25)
+       ↓
+Maildir (/home/user/Maildir)
+       ↓
+Dovecot (IMAP 143/993)
+       ↓
+PHP Webmail
+		
 			 
 
 

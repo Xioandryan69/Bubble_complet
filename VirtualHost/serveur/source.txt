@@ -1,0 +1,149 @@
+╔══════════════════════════════════════════════════════════════╗
+║ 📋 DOCUMENTATION COMPLÈTE DES SCRIPTS SHELL - HAGA HÉBERGEMENT ║
+║ Généré le: lrb 11 Feb 2026 22:35:06 EAT                                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+📁 PROJET: /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/serveur
+👤 UTILISATEUR: itu
+🖥️  MACHINE: itu-HP-EliteBook-830-G6
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: serveur.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/serveur/serveur.sh
+📊 TAILLE: 1672 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: Ensure the zone file ends with a newline to avoid BIND parse errors.
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	echo "Copying db.bubble.mg to /etc/bind/..."
+     2	sudo cp db.bubble.mg /etc/bind/db.bubble.mg
+     3	sudo chown root:root /etc/bind/db.bubble.mg
+     4	sudo chown root:root /etc/bind/named.conf.local
+     5	# Ensure the zone file ends with a newline to avoid BIND parse errors.
+     6	sudo sed -i -e '$a\' /etc/bind/db.bubble.mg
+     7	echo "Configuring BIND9 for bubble.mg... /etc/bind/named.conf.local"
+     8	# Add the zone only once to avoid duplicate definition errors.
+     9	if ! grep -q 'zone "bubble.mg"' /etc/bind/named.conf.local; then
+    10	cat <<EOF | sudo tee -a /etc/bind/named.conf.local > /dev/null
+    11	
+    12	zone "bubble.mg" {
+    13	        type master;
+    14	        file "/etc/bind/db.bubble.mg";
+    15	};
+    16	EOF
+    17	else
+    18	    echo "Zone bubble.mg already present in /etc/bind/named.conf.local"
+    19	fi
+    20	
+    21	sudo named-checkconf
+    22	sudo named-checkzone bubble.mg /etc/bind/db.bubble.mg
+    23	sudo systemctl restart bind9
+    24	
+    25	dig bubble.mg
+    26	
+    27	sudo cp -r ../../Bubble /var/www/html/Bubble
+    28	
+    29	sudo chown root:root /var/www/html/Bubble
+    30	
+    31	sudo cp ../bubble.mg.conf /etc/apache2/sites-available/bubble.mg.conf
+    32	sudo nano /etc/apache2/sites-available/bubble.mg.conf
+    33	sudo chown root:root /etc/apache2/sites-available/bubble.mg.conf
+    34	
+    35	sudo a2ensite bubble.mg.conf
+    36	sudo systemctl reload apache2
+    37	
+    38	
+    39	
+    40	echo "http://bubble.mg"
+    41	
+    42	sudo mkdir -p /etc/apache2/ssl
+    43	sudo openssl req -x509 -nodes -days 365 \
+    44	-newkey rsa:2048 \
+    45	-keyout /etc/apache2/ssl/bubble.mg.key \
+    46	-out /etc/apache2/ssl/bubble.mg.crt
+    47	
+    48	sudo cp ../../bubble.mg-ssl.conf /etc/apache2/sites-available/bubble.mg-ssl.conf
+    49	sudo chown root:root /etc/apache2/sites-available/bubble.mg-ssl.conf
+    50	
+    51	sudo nano /etc/apache2/sites-available/bubble.mg-ssl.conf
+    52	
+    53	
+    54	sudo a2enmod ssl
+    55	sudo a2ensite bubble.mg-ssl.conf
+    56	sudo systemctl restart apache2
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: user.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/serveur/user.sh
+📊 TAILLE: 1387 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: fonction a deux arguments 
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	# fonction a deux arguments 
+     2	if [ "$#" -ne 2 ]; then
+     3	    echo " Usage incorrect"
+     4	    echo " Usage: $0 <username> <ip>"
+     5	    exit 1
+     6	fi
+     7	
+     8	USERNAME="$1"
+     9	IP="$2"
+    10	DOMAIN="bubble.mg"
+    11	ZONE_FILE="/etc/bind/db.bubble.mg"
+    12	sudo chown root:root "$ZONE_FILE"
+    13	# 2️ Vérifier si l'entrée existe déjà
+    14	if grep -qE "^$USERNAME\s+IN\s+A" "$ZONE_FILE"; then
+    15	    echo "  L'entrée DNS $USERNAME.$DOMAIN existe déjà"
+    16	    exit 0
+    17	fi
+    18	
+    19	# 3️ Ajouter l’entrée DNS
+    20	echo " Ajout DNS : $USERNAME.$DOMAIN → $IP"
+    21	echo "$USERNAME    IN    A    $IP" | sudo tee -a "$ZONE_FILE" > /dev/null
+    22	
+    23	# 4️ Incrémenter le Serial
+    24	echo " Mise à jour du Serial"
+    25	OLD_SERIAL=$(grep '; Serial' "$ZONE_FILE" | grep -oE '[0-9]+' | head -1)
+    26	NEW_SERIAL=$((OLD_SERIAL + 1))
+    27	sudo sed -i "s/^[[:space:]]*$OLD_SERIAL[[:space:]]*;[[:space:]]*Serial/$NEW_SERIAL\t; Serial/" "$ZONE_FILE"
+    28	
+    29	# 5️ Vérification de la zone
+    30	echo " Vérification BIND9..."
+    31	sudo chown root:root "$ZONE_FILE"
+    32	sudo named-checkzone "$DOMAIN" "$ZONE_FILE"
+    33	if [ $? -ne 0 ]; then
+    34	    echo " Erreur dans le fichier DNS"
+    35	    exit 1
+    36	fi
+    37	
+    38	# 6️ Redémarrage BIND9
+    39	echo " Redémarrage de BIND9"
+    40	sudo adduser $USERNAME
+    41	sudo mkdir -p /home/$USERNAME/Maildir/{cur,new,tmp}
+    42	sudo chown -R $USERNAME:$USERNAME /home/$USERNAME/Maildir
+    43	
+    44	# 6️ Redémarrage BIND9
+    45	echo " Redémarrage de BIND9"
+    46	sudo systemctl restart bind9
+    47	
+    48	echo " DNS ajouté avec succès : $USERNAME.$DOMAIN"
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📊 STATISTIQUES FINALES
+══════════════════════════════════════════════════════════════
+📄 Nombre de fichiers .sh: 2
+💾 Taille totale: 3059 octets
+📅 Date de génération: lrb 11 Feb 2026 22:35:06 EAT
+
+✅ Génération terminée avec succès!
