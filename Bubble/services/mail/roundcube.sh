@@ -1,0 +1,1 @@
+sudo cp /home/itu/Documents/S3/Reseaux/Bubble_complet/Bubble/services/mail/config.inc.php /etc/roundcube/config.inc.php

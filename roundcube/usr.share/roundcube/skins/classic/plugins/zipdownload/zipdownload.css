@@ -1,0 +1,8 @@
+/* Roundcube Zipdownload plugin styles for classic skin */
+
+a.zipdownload {
+	display: block;
+	padding: 2px 0 2px 24px;
+	background: url(zip.png?v=be31.546) 4px 1px no-repeat #dfdfdf;
+	font-style: italic;
+}

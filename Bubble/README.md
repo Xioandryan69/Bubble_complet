@@ -227,3 +227,29 @@ PHP Webmail
 			 
 
 
+
+
+Maildir :
+    /home/username/Maildir/
+        cur/    # Messages lus
+        new/    # Messages non lus
+        tmp/    # Fichiers temporaires pendant la livraison
+
+Reception mail :        
+        entrant → Postfix -> home/username/Maildir→ Dovecot
+
+Webmail roundcube
+        IMAP : Dovecot (143/993) lit Maildir
+        SMTP : Postfix (25/587) renvoye
+
+## IMAP : Dovecot
+        host : localhost 
+        port 143 : 993 (SSL)
+        user : username // nyavo@bubble.mg
+        pass : password (linux)
+
+
+## SMTPO :Posfix
+        host : localhost
+        port : 25 (non sécurisé) ou 587 (STARTTLS)
+        user : username //

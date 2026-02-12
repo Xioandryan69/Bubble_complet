@@ -1,0 +1,755 @@
+╔══════════════════════════════════════════════════════════════╗
+║ 📋 DOCUMENTATION COMPLÈTE DES SCRIPTS SHELL - HAGA HÉBERGEMENT ║
+║ Généré le: lkm 12 Feb 2026 20:50:50 EAT                                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+📁 PROJET: /home/itu/Documents/S3/Reseaux/Bubble_complet
+👤 UTILISATEUR: itu
+🖥️  MACHINE: itu-HP-EliteBook-830-G6
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: Bubble/install.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/Bubble/install.sh
+📊 TAILLE: 408 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	sudo cp Bubble/provision.sh /usr/local/bin/
+     2	sudo cp VirtualHost/serveur/user.sh /usr/local/bin/
+     3	sudo cp Samba/run.sh /usr/local/bin/samba_add.sh
+     4	
+     5	sudo chmod 750 /usr/local/bin/provision.sh
+     6	sudo chmod 750 /usr/local/bin/user.sh
+     7	sudo chmod 750 /usr/local/bin/samba_add.sh
+     8	
+     9	sudo chown root:root /usr/local/bin/{provision.sh,user.sh,samba_add.sh}
+    10	sudo chmod 750 /usr/local/bin/{provision.sh,user.sh,samba_add.sh}
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: Bubble/provision.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/Bubble/provision.sh
+📊 TAILLE: 266 octets
+🔒 PERMISSIONS: 664
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: DNS + Mail + Web
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	
+     2	#!/usr/bin/env bash
+     3	set -euo pipefail
+     4	
+     5	USERNAME="$1"
+     6	IP="$2"
+     7	
+     8	echo "[+] Provision user: $USERNAME"
+     9	
+    10	# DNS + Mail + Web
+    11	/usr/local/bin/user.sh "$USERNAME" "$IP"
+    12	
+    13	# Samba
+    14	/usr/local/bin/samba_add.sh "$USERNAME" "GROUP"
+    15	
+    16	echo "[✓] Provision completed for $USERNAME"
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: Bubble/services/mail/roundcube.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/Bubble/services/mail/roundcube.sh
+📊 TAILLE: 119 octets
+🔒 PERMISSIONS: 664
+══════════════════════════════════════════════════════════════
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	sudo cp /home/itu/Documents/S3/Reseaux/Bubble_complet/Bubble/services/mail/config.inc.php /etc/roundcube/config.inc.php
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: database/init_db.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/database/init_db.sh
+📊 TAILLE: 6037 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: ============================================================
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	#!/usr/bin/env bash
+     2	# ============================================================
+     3	# Bubble.mg - Script d'initialisation de la base PostgreSQL
+     4	# Usage: sudo bash init_db.sh
+     5	# ============================================================
+     6	set -euo pipefail
+     7	
+     8	# ── Configuration ──────────────────────────────────────────
+     9	DB_NAME="bubble"
+    10	DB_USER="bubble_user"
+    11	DB_PASS="bubble_secret_2026"   # À changer en production !
+    12	DB_HOST="127.0.0.1"
+    13	DB_PORT="5432"
+    14	
+    15	SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    16	SCHEMA_FILE="$SCRIPT_DIR/schema.sql"
+    17	
+    18	# ── Couleurs ───────────────────────────────────────────────
+    19	RED='\033[0;31m'
+    20	GREEN='\033[0;32m'
+    21	YELLOW='\033[1;33m'
+    22	NC='\033[0m'
+    23	
+    24	info()  { echo -e "${GREEN}[✓]${NC} $1"; }
+    25	warn()  { echo -e "${YELLOW}[!]${NC} $1"; }
+    26	error() { echo -e "${RED}[✗]${NC} $1"; exit 1; }
+    27	
+    28	# ── Vérifications ─────────────────────────────────────────
+    29	echo "============================================"
+    30	echo "  Bubble.mg - Initialisation PostgreSQL"
+    31	echo "============================================"
+    32	echo ""
+    33	
+    34	# Vérifier que PostgreSQL est installé
+    35	if ! command -v psql &> /dev/null; then
+    36	    warn "PostgreSQL n'est pas installé. Installation..."
+    37	    apt-get update -qq
+    38	    apt-get install -y postgresql postgresql-contrib php-pgsql
+    39	    systemctl enable postgresql
+    40	    systemctl start postgresql
+    41	    info "PostgreSQL installé et démarré"
+    42	else
+    43	    info "PostgreSQL détecté"
+    44	fi
+    45	
+    46	# Vérifier que le service tourne
+    47	if ! systemctl is-active --quiet postgresql; then
+    48	    systemctl start postgresql
+    49	    info "PostgreSQL démarré"
+    50	fi
+    51	
+    52	# ── Création de l'utilisateur PostgreSQL ──────────────────
+    53	echo ""
+    54	echo "── Création de l'utilisateur $DB_USER ──"
+    55	
+    56	sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 || {
+    57	    sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
+    58	    info "Utilisateur '$DB_USER' créé"
+    59	}
+    60	info "Utilisateur '$DB_USER' prêt"
+    61	
+    62	# ── Création de la base de données ────────────────────────
+    63	echo ""
+    64	echo "── Création de la base de données $DB_NAME ──"
+    65	
+    66	if sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1; then
+    67	    warn "La base '$DB_NAME' existe déjà"
+    68	    read -p "   Voulez-vous la supprimer et la recréer ? (y/N) " -n 1 -r
+    69	    echo
+    70	    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    71	        sudo -u postgres psql -c "DROP DATABASE $DB_NAME;"
+    72	        info "Ancienne base supprimée"
+    73	    else
+    74	        warn "Conservation de la base existante. Arrêt du script."
+    75	        exit 0
+    76	    fi
+    77	fi
+    78	
+    79	sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+    80	sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+    81	info "Base de données '$DB_NAME' créée"
+    82	
+    83	# ── Exécution du schéma SQL ───────────────────────────────
+    84	echo ""
+    85	echo "── Application du schéma SQL ──"
+    86	
+    87	if [ ! -f "$SCHEMA_FILE" ]; then
+    88	    error "Fichier schema.sql introuvable: $SCHEMA_FILE"
+    89	fi
+    90	
+    91	# Générer le hash bcrypt pour l'admin par défaut
+    92	ADMIN_HASH=$(php -r "echo password_hash('admin123', PASSWORD_BCRYPT);" 2>/dev/null || echo '$2y$10$defaulthashplaceholder')
+    93	
+    94	# Remplacer le placeholder dans le schema
+    95	TEMP_SCHEMA=$(mktemp /tmp/bubble_schema.XXXXXX.sql)
+    96	sed "s|\\\$2y\\\$10\\\$YourBcryptHashHere|$ADMIN_HASH|g" "$SCHEMA_FILE" > "$TEMP_SCHEMA"
+    97	chmod 644 "$TEMP_SCHEMA"
+    98	
+    99	sudo -u postgres psql -d "$DB_NAME" -f "$TEMP_SCHEMA"
+   100	rm -f "$TEMP_SCHEMA"
+   101	
+   102	# Donner les droits sur toutes les tables
+   103	sudo -u postgres psql -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;"
+   104	sudo -u postgres psql -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;"
+   105	sudo -u postgres psql -d "$DB_NAME" -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $DB_USER;"
+   106	
+   107	info "Schéma SQL appliqué avec succès"
+   108	
+   109	# ── Configurer pg_hba.conf pour les connexions locales ────
+   110	echo ""
+   111	echo "── Configuration des accès ──"
+   112	
+   113	PG_HBA=$(sudo -u postgres psql -tc "SHOW hba_file" | xargs)
+   114	
+   115	if ! grep -q "$DB_USER" "$PG_HBA" 2>/dev/null; then
+   116	    # Ajouter la ligne avant la première entrée existante
+   117	    echo "local   $DB_NAME    $DB_USER                            md5" | sudo tee -a "$PG_HBA" > /dev/null
+   118	    echo "host    $DB_NAME    $DB_USER    127.0.0.1/32            md5" | sudo tee -a "$PG_HBA" > /dev/null
+   119	    sudo systemctl reload postgresql
+   120	    info "Accès configuré dans pg_hba.conf"
+   121	else
+   122	    info "Accès déjà configuré"
+   123	fi
+   124	
+   125	# ── Vérification ──────────────────────────────────────────
+   126	echo ""
+   127	echo "── Vérification ──"
+   128	
+   129	TABLE_COUNT=$(sudo -u postgres psql -d "$DB_NAME" -tc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';" | xargs)
+   130	info "Nombre de tables créées: $TABLE_COUNT"
+   131	
+   132	echo ""
+   133	echo "── Tables créées ──"
+   134	sudo -u postgres psql -d "$DB_NAME" -c "\dt"
+   135	
+   136	echo ""
+   137	echo "============================================"
+   138	info "Base de données Bubble.mg initialisée !"
+   139	echo ""
+   140	echo "  Paramètres de connexion:"
+   141	echo "  ─────────────────────────"
+   142	echo "  Host:     $DB_HOST"
+   143	echo "  Port:     $DB_PORT"
+   144	echo "  Base:     $DB_NAME"
+   145	echo "  User:     $DB_USER"
+   146	echo "  Password: $DB_PASS"
+   147	echo ""
+   148	echo "  Admin web par défaut:"
+   149	echo "  ─────────────────────"
+   150	echo "  Username: admin"
+   151	echo "  Password: admin123"
+   152	echo ""
+   153	echo "  ⚠  Changez les mots de passe en production !"
+   154	echo "============================================"
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: Dovecot/dovecot/check_dovecot.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/Dovecot/dovecot/check_dovecot.sh
+📊 TAILLE: 482 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	#!/bin/bash
+     2	
+     3	echo "=== DOVECOT STATUS ==="
+     4	sudo systemctl status dovecot --no-pager
+     5	
+     6	echo -e "\n=== DOVECOT CONFIGURATION (doveconf -n) ==="
+     7	sudo doveconf -n
+     8	
+     9	echo -e "\n=== DOVECOT LISTENING PORTS ==="
+    10	sudo ss -tlnp | grep dovecot
+    11	
+    12	echo -e "\n=== DOVECOT LOGS (last 10 lines) ==="
+    13	sudo tail -10 /var/log/dovecot.log 2>/dev/null || echo "Log file not found, trying journal..."
+    14	sudo journalctl -u dovecot --no-pager -n 10
+    15	
+    16	echo -e "\n=== DOVECOT PROCESSES ==="
+    17	ps aux | grep dovecot
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: Dovecot/dovecot/check_maildir.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/Dovecot/dovecot/check_maildir.sh
+📊 TAILLE: 811 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	#!/bin/bash
+     2	
+     3	echo "=== MAILDIR CHECK FOR USER $USER ==="
+     4	echo "Maildir path: ~/Maildir"
+     5	
+     6	if [ -d ~/Maildir ]; then
+     7	    echo "Maildir exists."
+     8	    echo -e "\n=== STRUCTURE ==="
+     9	    find ~/Maildir -type d | sort
+    10	    echo -e "\n=== COUNTS ==="
+    11	    echo "Cur: $(find ~/Maildir/cur -type f 2>/dev/null | wc -l) emails"
+    12	    echo "New: $(find ~/Maildir/new -type f 2>/dev/null | wc -l) emails"
+    13	    echo "Tmp: $(find ~/Maildir/tmp -type f 2>/dev/null | wc -l) emails"
+    14	else
+    15	    echo "Maildir does not exist. Creating..."
+    16	    mkdir -p ~/Maildir/{cur,new,tmp}
+    17	    chmod -R 700 ~/Maildir
+    18	    echo "Created ~/Maildir with subdirectories cur, new, tmp."
+    19	fi
+    20	
+    21	echo -e "\n=== PERMISSIONS ==="
+    22	ls -ld ~/Maildir
+    23	ls -ld ~/Maildir/* 2>/dev/null
+    24	
+    25	echo -e "\n=== DOVECOT MAIL_LOCATION ==="
+    26	sudo doveconf -h mail_location 2>/dev/null
+    27	
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: Dovecot/serveur/run.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/Dovecot/serveur/run.sh
+📊 TAILLE: 941 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	sudo cp Dovecot/main.cf /etc/postfix/main.cf
+     2	sudo chown  root:root /etc/postfix/main.cf
+     3	
+     4	echo "bubble.mg" | sudo tee /etc/mailname
+     5	sudo chown root:root /etc/mailname
+     6	sudo chmod 644 /etc/mailname
+     7	
+     8	sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+     9	-keyout /etc/ssl/private/mail.key \
+    10	-out /etc/ssl/certs/mail.crt \
+    11	-subj "/CN=mail.bubble.mg"
+    12	sudo chown  root:root /etc/ssl/private/mail.key
+    13	sudo chmod 600 /etc/ssl/private/mail.key
+    14	sudo chown  root:root /etc/ssl/certs/mail.crt
+    15	sudo chmod 644 /etc/ssl/certs/mail.crt
+    16	
+    17	sudo systemctl restart postfix
+    18	sudo systemctl enable postfix
+    19	sudo cp -R Dovecot/dovecot* /etc/dovecot/
+    20	sudo chown -R root:root /etc/dovecot
+    21	sudo chmod 755 /etc/dovecot
+    22	sudo systemctl restart dovecot
+    23	sudo systemctl enable dovecot
+    24	
+    25	sudo ufw allow 25     # SMTP
+    26	sudo ufw allow 587    # SMTP submission
+    27	sudo ufw allow 110    # POP3
+    28	sudo ufw allow 143    # IMAP
+    29	sudo ufw allow 993    # IMAPS
+    30	sudo ufw allow 995    # POP3S
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: roundcube/roundcube.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/roundcube/roundcube.sh
+📊 TAILLE: 148 octets
+🔒 PERMISSIONS: 777
+══════════════════════════════════════════════════════════════
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	sudo chown root:root /etc/roundcube/config.inc.php
+     2	sudo cp Bubble/services/mail/config.inc.php /etc/roundcube/config.inc.php
+     3	sudo a2enconf roundcube
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: Samba/run.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/Samba/run.sh
+📊 TAILLE: 868 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: Crée le dossier
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	# Crée le dossier
+     2	if [ "$#" -ne 2 ]; then
+     3	    echo " Usage incorrect"
+     4	    echo "👉 Usage: $0 <username> <partage>"
+     5	    exit 1
+     6	fi
+     7	username="$1"
+     8	partage="$2"
+     9	
+    10	
+    11	sudo mkdir -p /home/"$username"/"$partage"
+    12	sudo chown root:root /home/"$username"/"$partage"
+    13	#chown -R "$username:$username" /home/"$username"/"$partage"
+    14	
+    15	
+    16	# Change le propriétaire pour l'utilisateur nyavo
+    17	sudo chown "$username":"$username" /home/"$username"/"$partage"
+    18	
+    19	# Met des permissions de base (lecture/écriture/exécution pour le propriétaire)
+    20	sudo chmod 750 /home/"$username"/"$partage"
+    21	
+    22	# Crée l'utilisateur Samba (il existe déjà sous Linux)
+    23	sudo smbpasswd -a "$username"
+    24	
+    25	# Active l’utilisateur Samba
+    26	sudo smbpasswd -e "$username"
+    27	
+    28	# Redémarrer Samba
+    29	sudo systemctl restart smbd
+    30	sudo systemctl restart nmbd
+    31	echo "Partage Samba créé pour l'utilisateur $username : //$HOSTNAME/$partage"
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: VirtualHost/client /client.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/client /client.sh
+📊 TAILLE: 1886 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: Ensure the zone file ends with a newline to avoid BIND parse errors.
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	echo "Copying db.bubble.mg to /etc/bind/..."
+     2	sudo cp db.bubble.mg /etc/bind/
+     3	chown root:bind /etc/bind/db.bubble.mg
+     4	chmod 640 /etc/bind/db.bubble.mg
+     5	
+     6	sudo chown -R itu:itu /etc/bind/named.conf.local
+     7	# Ensure the zone file ends with a newline to avoid BIND parse errors.
+     8	sudo sed -i -e '$a\' /etc/bind/db.bubble.mg
+     9	echo "Configuring BIND9 for bubble.mg... /etc/bind/named.conf.local"
+    10	# Add the zone only once to avoid duplicate definition errors.
+    11	if ! grep -q 'zone "bubble.mg"' /etc/bind/named.conf.local; then
+    12	cat <<EOF | sudo tee -a /etc/bind/named.conf.local > /dev/null
+    13	
+    14	zone "bubble.mg" {
+    15	        type master;
+    16	        file "/etc/bind/db.bubble.mg";
+    17	};
+    18	EOF
+    19	else
+    20	    echo "Zone bubble.mg already present in /etc/bind/named.conf.local"
+    21	fi
+    22	
+    23	sudo named-checkconf
+    24	sudo named-checkzone bubble.mg /etc/bind/db.bubble.mg
+    25	sudo systemctl restart bind9
+    26	
+    27	dig bubble.mg
+    28	
+    29	sudo cp -r ../../Bubble /var/www/html/Bubble
+    30	
+    31	sudo chown root:root /var/www/html/Bubble
+    32	
+    33	sudo cp ../bubble.mg.conf /etc/apache2/sites-available/bubble.mg.conf
+    34	#sudo nano /etc/apache2/sites-available/bubble.mg.conf
+    35	sudo chown root:root /etc/apache2/sites-available/bubble.mg.conf
+    36	
+    37	sudo a2ensite bubble.mg.conf
+    38	sudo systemctl reload apache2
+    39	
+    40	
+    41	
+    42	echo "http://bubble.mg"
+    43	
+    44	sudo mkdir -p /etc/apache2/ssl
+    45	sudo openssl req -x509 -nodes -days 365 \
+    46	-newkey rsa:2048 \
+    47	-keyout /etc/apache2/ssl/bubble.mg.key \
+    48	-out /etc/apache2/ssl/bubble.mg.crt
+    49	sudo chown root:root /etc/apache2/ssl/bubble.mg.key
+    50	sudo chmod 600 /etc/apache2/ssl/bubble.mg.key
+    51	sudo chown root:root /etc/apache2/ssl/bubble.mg.crt
+    52	sudo chmod 644 /etc/apache2/ssl/bubble.mg.crt
+    53	sudo cp ../../bubble.mg-ssl.conf /etc/apache2/sites-available/bubble.mg-ssl.conf
+    54	sudo chown root:root /etc/apache2/sites-available/bubble.mg-ssl.conf
+    55	
+    56	sudo nano /etc/apache2/sites-available/bubble.mg-ssl.conf
+    57	
+    58	
+    59	sudo a2enmod ssl
+    60	sudo a2ensite bubble.mg-ssl.conf
+    61	sudo systemctl restart apache2
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: VirtualHost/client /user.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/client /user.sh
+📊 TAILLE: 1182 octets
+🔒 PERMISSIONS: 777
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: fonction a deux arguments 
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	# fonction a deux arguments 
+     2	if [ "$#" -ne 2 ]; then
+     3	    echo " Usage incorrect"
+     4	    echo "👉 Usage: $0 <username> <ip>"
+     5	    exit 1
+     6	fi
+     7	
+     8	USERNAME="$1"
+     9	IP="$2"
+    10	DOMAIN="bubble.mg"
+    11	ZONE_FILE="/etc/bind/db.bubble.mg"
+    12	sudo chown -R itu:itu "$ZONE_FILE"
+    13	# 2️ Vérifier si l'entrée existe déjà
+    14	if grep -qE "^$USERNAME\s+IN\s+A" "$ZONE_FILE"; then
+    15	    echo "  L'entrée DNS $USERNAME.$DOMAIN existe déjà"
+    16	    exit 0
+    17	fi
+    18	
+    19	# 3️ Ajouter l’entrée DNS
+    20	echo " Ajout DNS : $USERNAME.$DOMAIN → $IP"
+    21	echo "$USERNAME    IN    A    $IP" | sudo tee -a "$ZONE_FILE" > /dev/null
+    22	
+    23	# 4️ Incrémenter le Serial
+    24	echo " Mise à jour du Serial"
+    25	sudo sed -i '/Serial/ s/\([0-9]\+\)/\1+1/e' "$ZONE_FILE"
+    26	
+    27	# 5️ Vérification de la zone
+    28	echo " Vérification BIND9..."
+    29	sudo chown -R itu:itu "$ZONE_FILE"
+    30	sudo named-checkzone "$DOMAIN" "$ZONE_FILE"
+    31	if [ $? -ne 0 ]; then
+    32	    echo " Erreur dans le fichier DNS"
+    33	    exit 1
+    34	fi
+    35	
+    36	# 6️ Redémarrage BIND9
+    37	echo " Redémarrage de BIND9"
+    38	sudo adduser $USERNAME
+    39	sudo mkdir -p /home/$USERNAME/Maildir/{cur,new,tmp}
+    40	sudo chown -R $USERNAME:$USERNAME /home/$USERNAME/Maildir
+    41	
+    42	sudo systemctl restart bind9
+    43	
+    44	echo " DNS ajouté avec succès : $USERNAME.$DOMAIN"
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: VirtualHost/script_verification/verification.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/script_verification/verification.sh
+📊 TAILLE: 62 octets
+🔒 PERMISSIONS: 664
+══════════════════════════════════════════════════════════════
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	cat /etc/resolv.conf
+     2	
+     3	sudo systemctl restart systemd-resolved
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: VirtualHost/serveur/serveur.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/serveur/serveur.sh
+📊 TAILLE: 1672 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: Ensure the zone file ends with a newline to avoid BIND parse errors.
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	echo "Copying db.bubble.mg to /etc/bind/..."
+     2	sudo cp db.bubble.mg /etc/bind/db.bubble.mg
+     3	sudo chown root:root /etc/bind/db.bubble.mg
+     4	sudo chown root:root /etc/bind/named.conf.local
+     5	# Ensure the zone file ends with a newline to avoid BIND parse errors.
+     6	sudo sed -i -e '$a\' /etc/bind/db.bubble.mg
+     7	echo "Configuring BIND9 for bubble.mg... /etc/bind/named.conf.local"
+     8	# Add the zone only once to avoid duplicate definition errors.
+     9	if ! grep -q 'zone "bubble.mg"' /etc/bind/named.conf.local; then
+    10	cat <<EOF | sudo tee -a /etc/bind/named.conf.local > /dev/null
+    11	
+    12	zone "bubble.mg" {
+    13	        type master;
+    14	        file "/etc/bind/db.bubble.mg";
+    15	};
+    16	EOF
+    17	else
+    18	    echo "Zone bubble.mg already present in /etc/bind/named.conf.local"
+    19	fi
+    20	
+    21	sudo named-checkconf
+    22	sudo named-checkzone bubble.mg /etc/bind/db.bubble.mg
+    23	sudo systemctl restart bind9
+    24	
+    25	dig bubble.mg
+    26	
+    27	sudo cp -r ../../Bubble /var/www/html/Bubble
+    28	
+    29	sudo chown root:root /var/www/html/Bubble
+    30	
+    31	sudo cp ../bubble.mg.conf /etc/apache2/sites-available/bubble.mg.conf
+    32	sudo nano /etc/apache2/sites-available/bubble.mg.conf
+    33	sudo chown root:root /etc/apache2/sites-available/bubble.mg.conf
+    34	
+    35	sudo a2ensite bubble.mg.conf
+    36	sudo systemctl reload apache2
+    37	
+    38	
+    39	
+    40	echo "http://bubble.mg"
+    41	
+    42	sudo mkdir -p /etc/apache2/ssl
+    43	sudo openssl req -x509 -nodes -days 365 \
+    44	-newkey rsa:2048 \
+    45	-keyout /etc/apache2/ssl/bubble.mg.key \
+    46	-out /etc/apache2/ssl/bubble.mg.crt
+    47	
+    48	sudo cp ../../bubble.mg-ssl.conf /etc/apache2/sites-available/bubble.mg-ssl.conf
+    49	sudo chown root:root /etc/apache2/sites-available/bubble.mg-ssl.conf
+    50	
+    51	sudo nano /etc/apache2/sites-available/bubble.mg-ssl.conf
+    52	
+    53	
+    54	sudo a2enmod ssl
+    55	sudo a2ensite bubble.mg-ssl.conf
+    56	sudo systemctl restart apache2
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: VirtualHost/serveur/user.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/VirtualHost/serveur/user.sh
+📊 TAILLE: 1387 octets
+🔒 PERMISSIONS: 775
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: fonction a deux arguments 
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	# fonction a deux arguments 
+     2	if [ "$#" -ne 2 ]; then
+     3	    echo " Usage incorrect"
+     4	    echo " Usage: $0 <username> <ip>"
+     5	    exit 1
+     6	fi
+     7	
+     8	USERNAME="$1"
+     9	IP="$2"
+    10	DOMAIN="bubble.mg"
+    11	ZONE_FILE="/etc/bind/db.bubble.mg"
+    12	sudo chown root:root "$ZONE_FILE"
+    13	# 2️ Vérifier si l'entrée existe déjà
+    14	if grep -qE "^$USERNAME\s+IN\s+A" "$ZONE_FILE"; then
+    15	    echo "  L'entrée DNS $USERNAME.$DOMAIN existe déjà"
+    16	    exit 0
+    17	fi
+    18	
+    19	# 3️ Ajouter l’entrée DNS
+    20	echo " Ajout DNS : $USERNAME.$DOMAIN → $IP"
+    21	echo "$USERNAME    IN    A    $IP" | sudo tee -a "$ZONE_FILE" > /dev/null
+    22	
+    23	# 4️ Incrémenter le Serial
+    24	echo " Mise à jour du Serial"
+    25	OLD_SERIAL=$(grep '; Serial' "$ZONE_FILE" | grep -oE '[0-9]+' | head -1)
+    26	NEW_SERIAL=$((OLD_SERIAL + 1))
+    27	sudo sed -i "s/^[[:space:]]*$OLD_SERIAL[[:space:]]*;[[:space:]]*Serial/$NEW_SERIAL\t; Serial/" "$ZONE_FILE"
+    28	
+    29	# 5️ Vérification de la zone
+    30	echo " Vérification BIND9..."
+    31	sudo chown root:root "$ZONE_FILE"
+    32	sudo named-checkzone "$DOMAIN" "$ZONE_FILE"
+    33	if [ $? -ne 0 ]; then
+    34	    echo " Erreur dans le fichier DNS"
+    35	    exit 1
+    36	fi
+    37	
+    38	# 6️ Redémarrage BIND9
+    39	echo " Redémarrage de BIND9"
+    40	sudo adduser $USERNAME
+    41	sudo mkdir -p /home/$USERNAME/Maildir/{cur,new,tmp}
+    42	sudo chown -R $USERNAME:$USERNAME /home/$USERNAME/Maildir
+    43	
+    44	# 6️ Redémarrage BIND9
+    45	echo " Redémarrage de BIND9"
+    46	sudo systemctl restart bind9
+    47	
+    48	echo " DNS ajouté avec succès : $USERNAME.$DOMAIN"
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📄 FICHIER: write.sh
+📍 CHEMIN: /home/itu/Documents/S3/Reseaux/Bubble_complet/write.sh
+📊 TAILLE: 1173 octets
+🔒 PERMISSIONS: 664
+══════════════════════════════════════════════════════════════
+
+🏷️  TITRE: Script pour exporter tous les fichiers de configuration vers un seul fichier texte.
+
+💻 CONTENU:
+────────────────────────────────────────────────────────────────
+     1	#!/bin/bash
+     2	# Script pour exporter tous les fichiers de configuration vers un seul fichier texte.
+     3	# Usage : sudo ./export_config.sh [fichier_sortie]
+     4	
+     5	OUTPUT="${1:-source.txt}"   # Nom du fichier de sortie (défaut : source_config.txt)
+     6	
+     7	# Répertoires à parcourir
+     8	DIRS=(
+     9	    "/Bubble"
+    10	    "/Dovecot"
+    11	    "/Samba"
+    12	    "/database"
+    13	    "/VirtualHost"
+    14	
+    15	)
+    16	
+    17	# Vider/Créer le fichier de sortie
+    18	> "$OUTPUT"html/
+    19	
+    20	echo "Export en cours vers $OUTPUT ..."
+    21	
+    22	for dir in "${DIRS[@]}"; do
+    23	    if [[ ! -d "$dir" ]]; then
+    24	        echo "Répertoire introuvable : $dir" >> "$OUTPUT"
+    25	        continue
+    26	    fi
+    27	
+    28	    find "$dir" -type f -print0 2>/dev/null | while IFS= read -r -d '' fichier; do
+    29	        # Écrire l'en-tête du fichier
+    30	        echo -e "\n\n===== $fichier =====\n" >> "$OUTPUT"
+    31	
+    32	        # Tenter d'afficher le contenu ; s'il est binaire ou inaccessible, message d'erreur
+    33	        if file -b --mime "$fichier" | grep -q "^text/"; then
+    34	            cat "$fichier" 2>/dev/null >> "$OUTPUT" || echo "[ERREUR LECTURE]" >> "$OUTPUT"
+    35	        else
+    36	            echo "[FICHIER BINAIRE - contenu non affiché]" >> "$OUTPUT"
+    37	        fi
+    38	    done
+    39	done
+    40	
+    41	echo "Export terminé. Résultat : $OUTPUT"
+
+────────────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+📊 STATISTIQUES FINALES
+══════════════════════════════════════════════════════════════
+📄 Nombre de fichiers .sh: 15
+💾 Taille totale: 17442 octets
+📅 Date de génération: lkm 12 Feb 2026 20:50:50 EAT
+
+✅ Génération terminée avec succès!
